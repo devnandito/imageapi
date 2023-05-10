@@ -1,4 +1,4 @@
-module github.com/devnandito/webserver
+module github.com/devnandito/imageapi
 
 go 1.15
 

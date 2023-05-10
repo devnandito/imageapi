@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/devnandito/webserver/models"
+	"github.com/devnandito/imageapi/models"
 	"github.com/gorilla/sessions"
 )
 

@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/devnandito/webserver/models"
+	"github.com/devnandito/imageapi/models"
 )
 
 type Server struct {
