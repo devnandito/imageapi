@@ -166,3 +166,20 @@ func HandleUploadImage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http_status)
 	json.NewEncoder(w).Encode(resp)
 }
+
+// HandleUpload
+func HandleUpload(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(10 * 1024 * 1024)
+	file, handler, err := r.FormFile("myfile")
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	defer file.Close()
+	fmt.Println("File Info")
+	fmt.Println("File Name: ", handler.Filename)
+	fmt.Println("File Size: ", handler.Size)
+	fmt.Println("File Type: ", handler.Header)
+}
