@@ -4,9 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/devnandito/imageapi/models"
+	"github.com/gorilla/mux"
 )
 
 var img models.Image
@@ -44,17 +50,17 @@ func HandleApiCreateImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// im := models.Image{}
-	// textBytes := []byte(jsonData)
-	// er := im.ToText(textBytes, &im)
-	// if er != nil {
-	// 	panic(er)
-	// }
+	im := models.Image{}
+	textBytes := []byte(jsonData)
+	er := im.ToText(textBytes, &im)
+	if er != nil {
+		panic(er)
+	}
 
 	data := models.Image{
-		Title: img.Title,
-		Description: img.Description,
-		Url: img.Url,
+		Title: im.Title,
+		Description: im.Description,
+		Url: im.Url,
 	}
 
 	response, err := img.CreateImage(&data)
@@ -70,24 +76,24 @@ func HandleApiCreateImage(w http.ResponseWriter, r *http.Request) {
 // HandleUploadImage upload an image
 func HandleUploadImage(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 * 1024 * 1024)
-	file, handler, err := r.FormFile("myfile")
-
+	file, handler, err := r.FormFile("file")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	defer file.Close()
+
 	fmt.Println("File Info")
 	fmt.Println("File Name: ", handler.Filename)
 	fmt.Println("File Size: ", handler.Size)
 	fmt.Println("File Type: ", handler.Header.Get("Content-Type"))
 
-	// Upload file
-	tempFile, err2 := ioutil.TempFile("uploads", "upload-*.jpg")
+	f := fmt.Sprintf("img-%d*%s", time.Now().UnixNano(), filepath.Ext(handler.Filename))
 
-	if err2 != nil {
-		fmt.Println(err2)
+	// Upload file
+	tempFile, err := ioutil.TempFile("./assets/uploads", f)
+	if err != nil {
+		fmt.Println(err)
 	}
 	defer tempFile.Close()
 
@@ -97,6 +103,49 @@ func HandleUploadImage(w http.ResponseWriter, r *http.Request) {
 	}
 	tempFile.Write(fileBytes)
 	fmt.Println("Done")
+	
+	// save to database
+	title := r.PostFormValue("description")
+	description := r.PostFormValue("description")
+	slice := strings.Split(tempFile.Name(), ".")
+	uri := slice[1]+"."+slice[2]
+	data := models.Image{
+		Title: title,
+		Description: description,
+		Url: uri,
+	}
+
+	response, err := img.CreateImage(&data)
+	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(500), 500)
+		return
+	}
+	log.Println("Data inserted", response)
+}
+
+// HandleApiGetOneImage get a one image
+func HandleApiGetOneImage(w http.ResponseWriter, r *http.Request) {
+	imageId := mux.Vars(r)["id"]
+	pk, err :=  strconv.Atoi(imageId)
+	if err != nil {
+		panic(err)
+	}
+
+	objects, err := img.GetOneImage(pk)
+	if err != nil {
+		panic(err)
+	}
+	
+	response, err := json.Marshal(&objects)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }
 
 

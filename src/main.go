@@ -1,19 +1,19 @@
 package main
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/devnandito/imageapi/api"
-	"github.com/devnandito/imageapi/server"
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	http := server.NewServer(":8080")
-	// API clients
-	http.Handle("GET", "/api/images", api.HandleApiShowImage)
-	http.Handle("POST", "/api/images", api.HandleApiCreateImage)
-	http.Handle("POST", "/api/upload", api.HandleUploadImage)
-	// http.Handle("POST", "/api/clients", api.HandleApiCreateClient)
-	// http.Handle("GET", "/api/clients/:id", api.HandleApiPutClient)
-	// http.Handle("POST", "/api/users", handlers.HandleUserPostRequest)
-	
-	http.Listen()
+	addr := ":8080"
+	router := mux.NewRouter()
+	router.HandleFunc("/api/image", api.HandleApiShowImage).Methods("GET")
+	router.HandleFunc("/api/image/{id}", api.HandleApiGetOneImage).Methods("GET")
+	router.HandleFunc("/api/image", api.HandleApiCreateImage).Methods("POST")
+	log.Printf("Server is listening at %s...", addr)
+	log.Fatal(http.ListenAndServe(addr, router))
 }
