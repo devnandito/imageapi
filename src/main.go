@@ -14,6 +14,7 @@ func main() {
 	router.HandleFunc("/api/image", api.HandleApiShowImage).Methods("GET")
 	router.HandleFunc("/api/image/{id}", api.HandleApiGetOneImage).Methods("GET")
 	router.HandleFunc("/api/image", api.HandleApiCreateImage).Methods("POST")
+	router.HandleFunc("/api/image/upload", api.HandleUploadImage).Methods("POST")
 	log.Printf("Server is listening at %s...", addr)
 	log.Fatal(http.ListenAndServe(addr, router))
 }
